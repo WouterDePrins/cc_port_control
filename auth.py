@@ -43,9 +43,16 @@ class CCAPI:
 
     def get(self, path: str, params: Optional[dict] = None) -> dict:
         url = f"{self.base_url}{path}"
-        response = requests.get(url, headers=self._headers(), params=params, verify=self.verify_ssl)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.get(url, headers=self._headers(), params=params, verify=self.verify_ssl)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as e:
+            # Optionally log the error or handle specific status codes
+            return {"error": str(e), "status_code": response.status_code}
+        except requests.exceptions.RequestException as e:
+            # Catch any other errors (connection issues, timeouts, etc.)
+            return {"error": str(e), "status_code": None}
 
     def post(self, path: str, data: Optional[dict] = None) -> dict:
         url = f"{self.base_url}{path}"

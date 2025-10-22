@@ -22,10 +22,6 @@ def ask_for_status():
         print("Invalid status. Please enter 'UP' or 'DOWN'.")
 
 def main():
-    
-    mac_address = ask_for_mac()
-    status = ask_for_status()
-
     cc_url = os.environ.get("CC_URL")
     cc_username = os.environ.get("CC_USERNAME")
     cc_password = os.environ.get("CC_PASSWORD")
@@ -38,9 +34,19 @@ def main():
     switch_port_status = ''
     
     # Get device details by MAC address 
+    while True:
+        mac_address = ask_for_mac()
+        logging.info(f"Searching for MAC address: {mac_address}")
+        
+        devices = cc.get(f"/dna/intent/api/v1/client-detail?macAddress={mac_address}")
+        
+        if "error" in devices:
+            logging.info(f"MAC address {mac_address} not found. Try again.")
+            continue
+        else:
+            break
 
-    logging.info(f"Searching for MAC address: {mac_address}")
-    devices = cc.get(f"/dna/intent/api/v1/client-detail?macAddress={mac_address}")
+    status = ask_for_status()
     connected_devices = devices.get('detail', {}).get('connectedDevice', [])
     switch_port_name = devices.get('detail', {}).get('port')
 
@@ -90,6 +96,8 @@ def main():
                 break
         
             time.sleep(3)
+
+
 
 if __name__ == "__main__":
     main()
